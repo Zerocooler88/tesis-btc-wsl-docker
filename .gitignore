@@ -1,0 +1,60 @@
+# =========================
+# Entornos virtuales
+# =========================
+.venv/
+venv/
+
+# =========================
+# Caché y compilados de Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# =========================
+# Jupyter / notebooks temporales
+# =========================
+.ipynb_checkpoints/
+Untitled*.ipynb
+
+# =========================
+# Configuración local de VS Code
+# =========================
+.vscode/
+
+# =========================
+# Datos pesados y salidas
+# =========================
+data/raw_csv/
+data/raw_zips/
+data/bronze/
+data/silver/
+data/gold/
+data/tableau/
+logs/
+reports/
+
+# =========================
+# Backups y archivos comprimidos
+# =========================
+*.zip
+*.tar.gz
+backup_tesis_btc_20260319.tar.gz
+
+# =========================
+# Archivos pesados generados
+# =========================
+*.parquet
+
+# =========================
+# Sistema operativo
+# =========================
+.DS_Store
+Thumbs.db
+
+data/
+notebooks/
+.vscode/
+*.tar.gz
+Untitled*.ipynb
+.ipynb_checkpoints/

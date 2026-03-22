@@ -1,0 +1,78 @@
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+
+  spark-master:
+    build:
+      context: .
+      dockerfile: spark/Dockerfile
+    image: tesis-spark:3.5.1-python3-s3a
+    container_name: spark-master
+    depends_on:
+      - minio
+    ports:
+      - "7077:7077"
+      - "8080:8080"
+    volumes:
+      - ../data:/opt/spark/work-dir/data
+      - ../spark_jobs:/opt/spark/work-dir/spark_jobs
+    command: >
+      /opt/spark/bin/spark-class
+      org.apache.spark.deploy.master.Master
+      --host spark-master
+      --port 7077
+      --webui-port 8080
+
+  spark-worker:
+    image: tesis-spark:3.5.1-python3-s3a
+    container_name: spark-worker
+    depends_on:
+      - spark-master
+    ports:
+      - "8081:8081"
+    volumes:
+      - ../data:/opt/spark/work-dir/data
+      - ../spark_jobs:/opt/spark/work-dir/spark_jobs
+    command: >
+      /opt/spark/bin/spark-class
+      org.apache.spark.deploy.worker.Worker
+      spark://spark-master:7077
+      --webui-port 8081
+
+  airflow:
+    build:
+      context: ..
+      dockerfile: docker/airflow/Dockerfile
+    image: tesis-airflow:2.9.3-custom
+    container_name: airflow
+    depends_on:
+      - spark-master
+      - minio
+    ports:
+      - "8082:8080"
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+    group_add:
+      - "1001"
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags
+      - ../spark_jobs:/opt/airflow/spark_jobs
+      - ../data:/opt/airflow/data
+      - ../src:/opt/airflow/src
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: >
+      bash -c "airflow standalone"
+      
+volumes:
+  minio_data:
